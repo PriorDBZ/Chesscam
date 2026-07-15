@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
@@ -27,6 +28,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pickBtn: Button
     private lateinit var resetBtn: Button
     private lateinit var analyzeBtn: Button
+    private lateinit var fpsLabel: TextView
+    private lateinit var fpsSeek: SeekBar
 
     private var videoUri: Uri? = null
     private var analyzing = false
@@ -51,6 +54,17 @@ class MainActivity : AppCompatActivity() {
         pickBtn = findViewById(R.id.pickBtn)
         resetBtn = findViewById(R.id.resetBtn)
         analyzeBtn = findViewById(R.id.analyzeBtn)
+        fpsLabel = findViewById(R.id.fpsLabel)
+        fpsSeek = findViewById(R.id.fpsSeek)
+
+        fpsSeek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                updateFpsLabel()
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+        updateFpsLabel()
 
         picker.onPointsChanged = { count -> updateHint(count) }
 
@@ -63,6 +77,12 @@ class MainActivity : AppCompatActivity() {
         analyzeBtn.setOnClickListener { startAnalysis() }
 
         updateHint(0)
+    }
+
+    private fun currentFps() = fpsSeek.progress + 1
+
+    private fun updateFpsLabel() {
+        fpsLabel.text = getString(R.string.fps_label, currentFps())
     }
 
     private fun updateHint(count: Int) {
@@ -114,7 +134,9 @@ class MainActivity : AppCompatActivity() {
         status.visibility = View.VISIBLE
         status.text = getString(R.string.status_starting)
 
-        val analyzer = VideoAnalyzer(applicationContext, uri, picker.corners(), picker.clockRect())
+        val analyzer = VideoAnalyzer(applicationContext, uri, picker.corners(),
+            picker.clockRect(), currentFps())
+        fpsSeek.isEnabled = false
 
         lifecycleScope.launch {
             try {
@@ -139,6 +161,7 @@ class MainActivity : AppCompatActivity() {
                 analyzing = false
                 pickBtn.isEnabled = true
                 resetBtn.isEnabled = true
+                fpsSeek.isEnabled = true
                 analyzeBtn.isEnabled = picker.isComplete()
                 progress.visibility = View.GONE
             }

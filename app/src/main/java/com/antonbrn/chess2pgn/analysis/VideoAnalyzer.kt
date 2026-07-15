@@ -20,21 +20,24 @@ class VideoAnalyzer(
     private val context: Context,
     private val uri: Uri,
     private val corners: FloatArray,
-    private val clockRect: FloatArray // [left, top, right, bottom] en coords bitmap
+    private val clockRect: FloatArray, // [left, top, right, bottom] en coords bitmap
+    fps: Int = 2
 ) {
 
     companion object {
-        // fréquence d'échantillonnage : 2 images/s
-        const val FRAME_INTERVAL_US = 500_000L
         const val MAX_DIM = 640
 
         // seuils de vision, à ajuster selon l'éclairage / le matériel si besoin
         const val STABLE_DIFF = 5f       // en dessous : le plateau est immobile
-        const val STABLE_FRAMES = 2      // nb de frames immobiles consécutives requises
+        const val STABLE_SECONDS = 0.5f  // durée d'immobilité requise avant capture
         const val CHANGE_THRESHOLD = 20f // au-dessus : la case a changé d'état
         const val MIN_CHANGED = 2        // un coup modifie au moins 2 cases
         const val CLOCK_DIFF = 14f       // au-dessus : une main passe sur la pendule
     }
+
+    private val fps = fps.coerceIn(1, 60)
+    private val frameIntervalUs = 1_000_000L / this.fps
+    private val stableFramesNeeded = (this.fps * STABLE_SECONDS).toInt().coerceAtLeast(2)
 
     suspend fun run(onProgress: (frame: Int, total: Int, moves: Int) -> Unit): AnalysisResult =
         withContext(Dispatchers.Default) {
@@ -54,7 +57,7 @@ class VideoAnalyzer(
         val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             ?.toLongOrNull() ?: throw IllegalStateException("Durée de la vidéo illisible")
         val durationUs = durationMs * 1000
-        val totalFrames = (durationUs / FRAME_INTERVAL_US).toInt().coerceAtLeast(1)
+        val totalFrames = (durationUs / frameIntervalUs).toInt().coerceAtLeast(1)
 
         val warper = BoardWarper(corners)
         val inferencer = MoveInferencer()
@@ -108,7 +111,7 @@ class VideoAnalyzer(
                 } else 0
                 prevStats = stats
 
-                if (stableRun >= STABLE_FRAMES) {
+                if (stableRun >= stableFramesNeeded) {
                     if (committed == null) {
                         // première position stable = position de départ
                         committed = stats
@@ -136,7 +139,7 @@ class VideoAnalyzer(
             }
             frameIdx++
             if (frameIdx % 4 == 0) onProgress(frameIdx, totalFrames, inferencer.moveCount)
-            t += FRAME_INTERVAL_US
+            t += frameIntervalUs
         }
 
         AnalysisResult(inferencer.pgn(), inferencer.moveCount, warnings)

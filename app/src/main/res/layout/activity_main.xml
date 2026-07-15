@@ -35,6 +35,20 @@
         android:paddingTop="4dp"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/fpsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:paddingTop="6dp" />
+
+    <SeekBar
+        android:id="@+id/fpsSeek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="59"
+        android:progress="1" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

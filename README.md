@@ -54,8 +54,9 @@ Comme d'habitude :
 - Si un coup est définitivement inexpliqué, il est ignoré et signalé avec son
   horodatage dans l'écran de résultat — les coups suivants risquent alors
   d'échouer en cascade. Le timestamp permet de retrouver le moment fautif.
-- L'extraction de frames (`MediaMetadataRetriever`, 2 img/s, `OPTION_CLOSEST`)
-  est lente : compter environ 1 à 3 minutes d'analyse pour 10 minutes de vidéo.
+- L'extraction de frames (`MediaMetadataRetriever`, `OPTION_CLOSEST`) est
+  lente : à 2 img/s, compter environ 1 à 3 minutes d'analyse pour 10 minutes
+  de vidéo, et proportionnellement plus à fréquence élevée.
 
 ## Réglages
 
@@ -64,9 +65,11 @@ Les seuils de vision sont dans `VideoAnalyzer` :
 - `STABLE_DIFF` (5) : sensibilité de la détection « scène immobile ».
 - `CHANGE_THRESHOLD` (20) : sensibilité du « cette case a changé ».
 - `CLOCK_DIFF` (14) : sensibilité de la détection d'appui pendule.
-- `FRAME_INTERVAL_US` (500 000) : fréquence d'échantillonnage — un appui
-  pendule plus court qu'une demi-seconde peut passer entre deux frames ;
-  baisser à 250 000 si les joueurs appuient très vite (blitz).
+
+La fréquence d'analyse (1 à 60 img/s) se règle directement dans l'app via le
+curseur. À 2 img/s un appui pendule très bref peut passer entre deux images :
+monter la fréquence pour du blitz. Attention, le temps d'analyse est
+proportionnel à la fréquence (l'extraction de frame est l'étape lente).
 
 Si l'app rate des coups → baisser `CHANGE_THRESHOLD` ; si elle voit des coups
 fantômes (ombres, reflets) → l'augmenter.

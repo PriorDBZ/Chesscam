@@ -11,6 +11,7 @@
     <string name="hint_tap_clock">Touche le coin %1$d/2 de la zone pendule (là où les joueurs appuient).</string>
     <string name="hint_ready">Plateau et pendule placés. Lance l\'analyse !</string>
 
+    <string name="fps_label">Fréquence d\'analyse : %1$d img/s (plus élevé = plus précis mais plus lent)</string>
     <string name="status_starting">Analyse en cours…</string>
     <string name="status_progress">Analyse : %1$d %% — %2$d coup(s) détecté(s)</string>
     <string name="status_done">Terminé : %1$d coup(s) détecté(s)</string>
