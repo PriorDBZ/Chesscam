@@ -68,10 +68,12 @@ class MainActivity : AppCompatActivity() {
     private fun updateHint(count: Int) {
         hint.text = when {
             videoUri == null -> getString(R.string.hint_pick_video)
-            count < 4 -> getString(R.string.hint_tap_corner, CornerPickerView.LABELS[count])
+            count < 4 -> getString(R.string.hint_tap_corner, CornerPickerView.BOARD_LABELS[count])
+            count < CornerPickerView.TOTAL_POINTS -> getString(R.string.hint_tap_clock, count - 3)
             else -> getString(R.string.hint_ready)
         }
-        analyzeBtn.isEnabled = videoUri != null && count == 4 && !analyzing
+        analyzeBtn.isEnabled = videoUri != null &&
+            count == CornerPickerView.TOTAL_POINTS && !analyzing
     }
 
     private fun loadFirstFrame(uri: Uri) {
@@ -112,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         status.visibility = View.VISIBLE
         status.text = getString(R.string.status_starting)
 
-        val analyzer = VideoAnalyzer(applicationContext, uri, picker.corners())
+        val analyzer = VideoAnalyzer(applicationContext, uri, picker.corners(), picker.clockRect())
 
         lifecycleScope.launch {
             try {
